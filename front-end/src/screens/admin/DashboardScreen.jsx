@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import { Container, Table, Badge, Button, Spinner, Alert } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useAuth } from "../../hooks/useAuth";
@@ -9,6 +11,8 @@ import { fetchUsersApi, updateUserApi, deleteUserApi } from "../../redux/api/use
 export const DashboardScreen = () => {
   const { auth, logout } = useAuth();
   const currentUser = auth?.me;
+  const myList = useSelector((state) => state.myList);
+  const savedCount = Array.isArray(myList) ? myList.length : 0;
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -148,38 +152,63 @@ export const DashboardScreen = () => {
               )}
             </div>
             <h1 className="display-6 font-weight-bold mb-1">
-              Dashboard de Usuario
+              Mi Perfil & Dashboard
             </h1>
             <h3 className="text-warning mb-2" id="dashboard-user-greeting">
               Bienvenido, {currentUser?.username || currentUser?.email || "Usuario"}
             </h3>
             <p className="text-muted small mb-0 font-monospace">
-              Correo: <span className="text-light">{currentUser?.email}</span> | ID: #{currentUser?.id} | Teléfono: {currentUser?.telefono || "No especificado"}
+              Correo: <span className="text-light">{currentUser?.email}</span> | ID: #{currentUser?.id} | Teléfono: {currentUser?.telefono || "No registrado"}
             </p>
           </div>
 
-          <div className="d-flex gap-2">
+          <div className="d-flex flex-wrap gap-2">
+            <Link to="/explorar" className="btn btn-outline-warning btn-sm">
+              Explorar Catálogo
+            </Link>
             <Button
               variant="outline-danger"
               size="sm"
               onClick={logout}
               className="d-flex align-items-center gap-1"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
               Cerrar Sesión
             </Button>
           </div>
         </div>
+
+        {/* Resumen de Actividad de Anime del Usuario */}
+        <div className="row g-3 mt-3 pt-3 border-top border-secondary border-opacity-25">
+          <div className="col-12 col-sm-4">
+            <div className="p-3 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+              <div>
+                <span className="text-muted small">Animes en Mi Lista</span>
+                <div className="h3 mb-0 text-warning font-weight-bold">{savedCount}</div>
+              </div>
+              <Link to="/mi-lista" className="btn btn-sm btn-outline-secondary">
+                Ver Lista
+              </Link>
+            </div>
+          </div>
+          <div className="col-12 col-sm-4">
+            <div className="p-3 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25">
+              <span className="text-muted small">Estado de Suscripción</span>
+              <div className="h3 mb-0 text-success font-weight-bold">Activo VIP</div>
+            </div>
+          </div>
+          <div className="col-12 col-sm-4">
+            <div className="p-3 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25">
+              <span className="text-muted small">Streaming HD / 4K</span>
+              <div className="h3 mb-0 text-info font-weight-bold">Habilitado</div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Parte 2: Widget de API de Terceros con fetch() */}
+      {/* Parte 2: Widget de API de Terceros con fetch() - Recomendación Anime */}
       <ThirdPartyWidget />
 
-      {/* Parte 3: Widget de Consumo SOAP con Zeep en Django */}
+      {/* Parte 3: Widget de Consumo SOAP con Zeep en Django - Licenciamiento Regional */}
       <SoapViewerWidget />
 
       {/* Sección Administrativa si es Staff */}
