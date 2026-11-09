@@ -1,0 +1,54 @@
+services:
+  # Base de Datos Relacional de Grado de Producción
+  db:
+    image: postgres:16-alpine
+    container_name: anime_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: anime_db
+      POSTGRES_USER: anime_user
+      POSTGRES_PASSWORD: anime_secure_password_2026
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U anime_user -d anime_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend en Django con Servidor WSGI Gunicorn
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: anime_django_backend
+    restart: always
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn --bind 0.0.0.0:8000 --workers 3 anime_backend.wsgi:application"
+    environment:
+      DJANGO_DEBUG: "False"
+      DJANGO_SECRET_KEY: "prod-super-secret-key-anime-recommended-platform-2026"
+      DATABASE_URL: "postgresql://anime_user:anime_secure_password_2026@db:5432/anime_db"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Frontend en React + Vite servido con Nginx
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+    container_name: anime_react_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
